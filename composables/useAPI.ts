@@ -13,7 +13,7 @@ export function useAPI<T>(url: string, options: UseFetchOptions<T> = {}) {
   const retry = 0;
 
   const defaults: UseFetchOptions<T> = {
-    baseURL: "/api",
+    baseURL: config.public.BASE_URL || "/",
     key: url,
     headers: { Authorization: `Bearer ${accessToken}` },
     async onResponseError({ response }) {
