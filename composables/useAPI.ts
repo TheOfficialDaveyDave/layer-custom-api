@@ -24,8 +24,7 @@ export function useAPI<T>(url: string, options: UseFetchOptions<T> = {}) {
           body: { refreshToken: refreshToken },
         });
 
-        const res = data.data.value as any;
-        useCookie("accessToken", cookieOptions).value = res.data.accessToken;
+        useCookie("accessToken", cookieOptions).value = data.data.value as string;
 
         const params = defu(
           {
