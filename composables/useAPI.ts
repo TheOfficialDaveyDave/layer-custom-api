@@ -24,12 +24,14 @@ export function useAPI<T>(url: string, options: UseFetchOptions<T> = {}) {
           body: { refreshToken: refreshToken },
         });
 
-        useCookie("accessToken", cookieOptions).value = data.data.value as string;
+        const accessToken = data.data.value as string;
+
+        useCookie("accessToken", cookieOptions).value = accessToken;
 
         const params = defu(
           {
             ...options,
-            headers: { Authorization: `Bearer ${res.data.accessToken}` },
+            headers: { Authorization: `Bearer ${accessToken}` },
           },
           defaults,
         );
