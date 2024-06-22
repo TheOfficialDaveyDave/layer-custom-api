@@ -19,7 +19,7 @@ export function useAPI<T>(url: string, options: UseFetchOptions<T> = {}) {
     async onResponseError({ response }) {
       if (response.status === 401 && !retry) {
         const refreshToken = useCookie("refreshToken", cookieOptions).value;
-        const data = await useFetch("/api/v1/auth/refresh-token", {
+        const data = await useFetch("/api/auth/refresh-token", {
           method: "POST",
           body: { refreshToken: refreshToken },
         });
