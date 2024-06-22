@@ -9,39 +9,39 @@ export function useAPI<T>(url: string, options: UseFetchOptions<T> = {}) {
     maxAge: 30 * 24 * 60 * 60,
   };
 
-  const accessToken = useCookie("accessToken", cookieOptions).value;
-  const retry = 0;
-
   const defaults: UseFetchOptions<T> = {
-    baseURL: config.public.BASE_URL || "/",
+    baseURL: "/",
     key: url,
-    headers: { Authorization: `Bearer ${accessToken}` },
-    async onResponseError({ response }) {
-      if (response.status === 401 && !retry) {
-        const refreshToken = useCookie("refreshToken", cookieOptions).value;
-        const data = await useFetch("/api/auth/refresh-token", {
-          method: "POST",
-          body: { refreshToken: refreshToken },
-        });
+    server: false,
+    retry: 1,
+    retryStatusCodes: [401],
+    retryDelay: 500, // can safely delete this
 
-        const accessToken = data.data.value as string;
-
-        useCookie("accessToken", cookieOptions).value = accessToken;
-
-        const params = defu(
-          {
-            ...options,
-            headers: { Authorization: `Bearer ${accessToken}` },
-          },
-          defaults,
-        );
-
-        return useFetch(url, params);
-      }
+    onRequest({ options }) {
+      const accessToken = useCookie('accessToken', cookieOptions).value
+      options.headers = accessToken ? { Authorization: `Bearer ${accessToken}` }
+        : {}
     },
-  };
 
-  const params = defu(options, defaults);
+    async onResponseError({ response }) {
+      if (response.status === 401) {
+        await useFetch('/api/auth/refresh', {
+          baseURL: "/",
+          method: 'POST',
+          server: false,
+          credentials: 'include',
+          body: JSON.stringify({ refreshToken: useCookie('refreshToken', cookieOptions).value }),
 
-  return useFetch(url, params);
+          onResponse({ response }) {
+            useCookie('accessToken', cookieOptions).value = response._data;
+          },
+        },
+        )
+      }
+    }
+  }
+
+  const params = defu(options, defaults)
+
+  return useFetch(url, params)
 }
